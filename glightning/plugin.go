@@ -1091,12 +1091,22 @@ func (fb *FeatureBits) AreSet() bool {
 }
 
 type Manifest struct {
-	Options       []Option     `json:"options"`
-	RpcMethods    []*RpcMethod `json:"rpcmethods"`
-	Dynamic       bool         `json:"dynamic"`
-	Subscriptions []string     `json:"subscriptions,omitempty"`
-	Hooks         []Hook       `json:"hooks,omitempty"`
-	FeatureBits   *FeatureBits `json:"featurebits,omitempty"`
+	Options       []Option            `json:"options"`
+	RpcMethods    []*RpcMethod        `json:"rpcmethods"`
+	Dynamic       bool                `json:"dynamic"`
+	Subscriptions []string            `json:"subscriptions,omitempty"`
+	Hooks         []Hook              `json:"hooks,omitempty"`
+	FeatureBits   *FeatureBits        `json:"featurebits,omitempty"`
+	Notifications []NotificationTopic `json:"notifications,omitempty"`
+}
+
+type NotificationTopic struct {
+	Method      string `json:"method"`
+	Description string `json:"description,omitempty"`
+}
+
+type Notification interface {
+	Name() string
 }
 
 func (gm GetManifestMethod) Name() string {
@@ -1144,6 +1154,11 @@ func (gm GetManifestMethod) Call() (jrpc2.Result, error) {
 		}
 	}
 	m.FeatureBits = gm.plugin.features
+
+	m.Notifications = make([]NotificationTopic, len(gm.plugin.notifications))
+	for i, notif := range gm.plugin.notifications {
+		m.Notifications[i] = notif
+	}
 
 	return m, nil
 }
@@ -1317,6 +1332,7 @@ type Plugin struct {
 	stopped       bool
 	dynamic       bool
 	features      *FeatureBits
+	notifications []NotificationTopic
 }
 
 func NewPlugin(initHandler func(p *Plugin, o map[string]Option, c *Config)) *Plugin {
@@ -1495,6 +1511,21 @@ func (p *Plugin) UnregisterOption(o Option) error {
 		return fmt.Errorf("No %s option registered", o.GetName())
 	}
 	delete(p.options, o.GetName())
+	return nil
+}
+
+func (p *Plugin) RegisterNotificationTopic(topic string, description string) {
+	p.notifications = append(p.notifications, NotificationTopic{
+		Method:      topic,
+		Description: description,
+	})
+}
+
+func (p *Plugin) EmitCustomNotification(payload Notification) error {
+	if err := p.server.Notify(payload); err != nil {
+		return fmt.Errorf("failed to emit notification for topic %s: %w", payload.Name(), err)
+	}
+
 	return nil
 }
 
