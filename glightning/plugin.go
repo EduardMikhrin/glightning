@@ -1641,6 +1641,11 @@ func (p *Plugin) SubscribeShutdown(cb func()) {
 	})
 }
 
+func (p *Plugin) Subscribe(subscription jrpc2.ServerMethod) {
+	p.server.Register(subscription)
+	p.subscriptions = append(p.subscriptions, subscription.Name())
+}
+
 func (p *Plugin) subscribe(subscription jrpc2.ServerMethod) {
 	p.server.Register(subscription)
 	p.subscriptions = append(p.subscriptions, subscription.Name())
