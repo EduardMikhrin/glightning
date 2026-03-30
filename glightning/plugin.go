@@ -1588,65 +1588,60 @@ func (p *Plugin) getOptionSet() map[string]Option {
 }
 
 func (p *Plugin) SubscribeConnect(cb func(c *ConnectEvent)) {
-	p.subscribe(&ConnectEvent{
+	p.Subscribe(&ConnectEvent{
 		cb: cb,
 	})
 }
 
 func (p *Plugin) SubscribeDisconnect(cb func(c *DisconnectEvent)) {
-	p.subscribe(&DisconnectEvent{
+	p.Subscribe(&DisconnectEvent{
 		cb: cb,
 	})
 }
 
 func (p *Plugin) SubscribeInvoicePaid(cb func(c *Payment)) {
-	p.subscribe(&InvoicePaidEvent{
+	p.Subscribe(&InvoicePaidEvent{
 		cb: cb,
 	})
 }
 
 func (p *Plugin) SubscribeChannelOpened(cb func(c *ChannelOpened)) {
-	p.subscribe(&ChannelOpenedEvent{
+	p.Subscribe(&ChannelOpenedEvent{
 		cb: cb,
 	})
 }
 
 func (p *Plugin) SubscribeWarnings(cb func(c *Warning)) {
-	p.subscribe(&WarnEvent{
+	p.Subscribe(&WarnEvent{
 		cb: cb,
 	})
 }
 
 func (p *Plugin) SubscribeSendPaySuccess(cb func(c *SendPaySuccess)) {
-	p.subscribe(&SendPaySuccessEvent{
+	p.Subscribe(&SendPaySuccessEvent{
 		cb: cb,
 	})
 }
 
 func (p *Plugin) SubscribeSendPayFailure(cb func(c *SendPayFailure)) {
-	p.subscribe(&SendPayFailureEvent{
+	p.Subscribe(&SendPayFailureEvent{
 		cb: cb,
 	})
 }
 
 func (p *Plugin) SubscribeForwardings(cb func(c *Forwarding)) {
-	p.subscribe(&ForwardEvent{
+	p.Subscribe(&ForwardEvent{
 		cb: cb,
 	})
 }
 
 func (p *Plugin) SubscribeShutdown(cb func()) {
-	p.subscribe(&ShutdownEvent{
+	p.Subscribe(&ShutdownEvent{
 		cb: cb,
 	})
 }
 
 func (p *Plugin) Subscribe(subscription jrpc2.ServerMethod) {
-	p.server.Register(subscription)
-	p.subscriptions = append(p.subscriptions, subscription.Name())
-}
-
-func (p *Plugin) subscribe(subscription jrpc2.ServerMethod) {
 	p.server.Register(subscription)
 	p.subscriptions = append(p.subscriptions, subscription.Name())
 }
