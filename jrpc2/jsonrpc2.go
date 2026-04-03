@@ -572,6 +572,19 @@ func innerParse(targetValue reflect.Value, fVal reflect.Value, value interface{}
 			return nil
 		}
 
+		if v.Kind() == reflect.String && fVal.Type().Elem().Name() == "Hexed" {
+			strVal := value.(string)
+			rawBytes, err := hex.DecodeString(strVal)
+			if err != nil {
+				return err
+			}
+			n := reflect.New(fVal.Type().Elem())
+			n.Elem().FieldByName("Str").SetString(strVal)
+			n.Elem().FieldByName("Raw").SetBytes(rawBytes)
+			fVal.Set(n)
+			return nil
+		}
+
 		if v.Kind() != reflect.Map {
 			fmt.Printf(
 				"PTR MISMATCH target=%s fieldType=%s elemType=%s jsonKind=%s value=%#v\n",
