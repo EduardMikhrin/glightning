@@ -1,6 +1,7 @@
 package jrpc2
 
 import (
+	"encoding"
 	"encoding/hex"
 	"encoding/json"
 	"errors"
@@ -357,7 +358,8 @@ func ParseNamedParams(target Method, params map[string]interface{}) error {
 		fmt.Println("ERR")
 		fmt.Println(err)
 		fmt.Println(targetValue)
-		fmt.Println(params)
+		fmt.Printf("PARAMS: %#v\n", params)
+		return err
 	}
 	return nil
 }
@@ -530,15 +532,30 @@ func innerParse(targetValue reflect.Value, fVal reflect.Value, value interface{}
 			return nil
 		}
 
-		umtype := reflect.TypeOf((*json.Unmarshaler)(nil)).Elem()
+		umType := reflect.TypeOf((*json.Unmarshaler)(nil)).Elem()
+		tmType := reflect.TypeOf((*encoding.TextUnmarshaler)(nil)).Elem()
+		ptrType := fVal.Type()
 
-		if reflect.PointerTo(fVal.Type().Elem()).Implements(umtype) {
-			n := reflect.New(fVal.Type().Elem())
+		if ptrType.Implements(umType) || reflect.PointerTo(ptrType.Elem()).Implements(umType) {
+			n := reflect.New(ptrType.Elem())
 			data, err := json.Marshal(value)
 			if err != nil {
 				return err
 			}
 			if err := json.Unmarshal(data, n.Interface()); err != nil {
+				return err
+			}
+			fVal.Set(n)
+			return nil
+		}
+
+		if ptrType.Implements(tmType) || reflect.PointerTo(ptrType.Elem()).Implements(tmType) {
+			s, ok := value.(string)
+			if !ok {
+				return NewError(nil, InvalidParams, fmt.Sprintf("Expected string input for %s.%s, but got %T", targetValue.Type().Name(), fVal.Type().Name(), value))
+			}
+			n := reflect.New(ptrType.Elem())
+			if err := n.Interface().(encoding.TextUnmarshaler).UnmarshalText([]byte(s)); err != nil {
 				return err
 			}
 			fVal.Set(n)
