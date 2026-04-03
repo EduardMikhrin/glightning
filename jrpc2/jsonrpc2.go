@@ -378,6 +378,15 @@ func innerParseNamed(targetValue reflect.Value, params map[string]interface{}) e
 			name, _ := parseTag(tag)
 			if name == key || key == strings.ToLower(fT.Name) {
 				found = true
+				fmt.Printf(
+					"MATCH target=%s key=%q field=%s fieldType=%s valueType=%T value=%#v\n",
+					targetValue.Type().Name(),
+					key,
+					fT.Name,
+					fVal.Type().String(),
+					value,
+					value,
+				)
 				err := innerParse(targetValue, fVal, value)
 				if err != nil {
 					return err
@@ -531,6 +540,14 @@ func innerParse(targetValue reflect.Value, fVal reflect.Value, value interface{}
 			return nil
 		}
 		if v.Kind() != reflect.Map {
+			fmt.Printf(
+				"PTR MISMATCH target=%s fieldType=%s elemType=%s jsonKind=%s value=%#v\n",
+				targetValue.Type().Name(),
+				fVal.Type().String(),
+				fVal.Type().Elem().String(),
+				v.Kind().String(),
+				value,
+			)
 			return NewError(nil, InvalidParams, fmt.Sprintf("Types don't match. Expected a map[string]interface{} from the JSON, instead got %s", v.Kind().String()))
 		}
 		if fVal.IsNil() {
