@@ -527,9 +527,24 @@ func innerParse(targetValue reflect.Value, fVal reflect.Value, value interface{}
 		}
 	case reflect.Ptr:
 		if v.Kind() == reflect.Invalid {
-			// i'm afraid that's a nil, my dear
 			return nil
 		}
+
+		umtype := reflect.TypeOf((*json.Unmarshaler)(nil)).Elem()
+
+		if reflect.PointerTo(fVal.Type().Elem()).Implements(umtype) {
+			n := reflect.New(fVal.Type().Elem())
+			data, err := json.Marshal(value)
+			if err != nil {
+				return err
+			}
+			if err := json.Unmarshal(data, n.Interface()); err != nil {
+				return err
+			}
+			fVal.Set(n)
+			return nil
+		}
+
 		if fVal.Type().Elem().Kind() != reflect.Struct {
 			n := reflect.New(fVal.Type().Elem())
 			err := innerParse(targetValue, n.Elem(), value)
@@ -539,6 +554,7 @@ func innerParse(targetValue reflect.Value, fVal reflect.Value, value interface{}
 			fVal.Set(n)
 			return nil
 		}
+
 		if v.Kind() != reflect.Map {
 			fmt.Printf(
 				"PTR MISMATCH target=%s fieldType=%s elemType=%s jsonKind=%s value=%#v\n",
@@ -550,9 +566,8 @@ func innerParse(targetValue reflect.Value, fVal reflect.Value, value interface{}
 			)
 			return NewError(nil, InvalidParams, fmt.Sprintf("Types don't match. Expected a map[string]interface{} from the JSON, instead got %s", v.Kind().String()))
 		}
+
 		if fVal.IsNil() {
-			// You need a new pointer object thing here
-			// so allocate one with this voodoo-magique
 			fVal.Set(reflect.New(fVal.Type().Elem()))
 		}
 		return innerParseNamed(fVal.Elem(), value.(map[string]interface{}))
