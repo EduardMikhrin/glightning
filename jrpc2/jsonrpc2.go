@@ -418,14 +418,12 @@ func innerParse(targetValue reflect.Value, fVal reflect.Value, value interface{}
 	}
 
 	// json.RawMessage escape hatch
-	var eg json.RawMessage
-	if fVal.Type() == reflect.TypeOf(eg) {
+	if strings.Contains(fVal.Type().String(), "RawMessage") {
 		out, err := json.Marshal(value)
 		if err != nil {
 			return err
 		}
-		jm := json.RawMessage(out)
-		fVal.Set(reflect.ValueOf(jm))
+		fVal.Set(reflect.ValueOf(out).Convert(fVal.Type()))
 		return nil
 	}
 
@@ -480,8 +478,12 @@ func innerParse(targetValue reflect.Value, fVal reflect.Value, value interface{}
 			return nil
 		}
 
-		av := value.([]interface{})
+		av, ok := value.([]interface{})
+		if !ok {
+			return NewError(nil, InvalidParams, fmt.Sprintf("Expected JSON array for slice field %s, but got %T", fVal.Type().Name(), value))
+		}
 		fVal.Set(reflect.MakeSlice(fVal.Type(), len(av), len(av)))
+
 		for i := range av {
 			err := innerParse(targetValue, fVal.Index(i), av[i])
 			if err != nil {
