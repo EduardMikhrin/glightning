@@ -359,10 +359,6 @@ func ParseNamedParams(target Method, params map[string]interface{}) error {
 	targetValue := reflect.Indirect(reflect.ValueOf(target))
 	err := innerParseNamed(targetValue, params)
 	if err != nil {
-		fmt.Println("ERR")
-		fmt.Println(err)
-		fmt.Println(targetValue)
-		fmt.Printf("PARAMS: %#v\n", params)
 		return err
 	}
 	return nil
