@@ -571,15 +571,25 @@ func innerParse(targetValue reflect.Value, fVal reflect.Value, value interface{}
 			return nil
 		}
 
-		if v.Kind() == reflect.String && fVal.Type().Elem().Name() == "Hexed" {
+		if v.Kind() == reflect.String && strings.HasSuffix(fVal.Type().Elem().String(), "Hexed") {
 			strVal := value.(string)
 			rawBytes, err := hex.DecodeString(strVal)
 			if err != nil {
 				return err
 			}
+
 			n := reflect.New(fVal.Type().Elem())
-			n.Elem().FieldByName("Str").SetString(strVal)
-			n.Elem().FieldByName("Raw").SetBytes(rawBytes)
+
+			if strField := n.Elem().FieldByName("Str"); strField.IsValid() {
+				strField.SetString(strVal)
+			} else if stringField := n.Elem().FieldByName("String"); stringField.IsValid() {
+				stringField.SetString(strVal)
+			}
+
+			if rawField := n.Elem().FieldByName("Raw"); rawField.IsValid() {
+				rawField.SetBytes(rawBytes)
+			}
+
 			fVal.Set(n)
 			return nil
 		}
