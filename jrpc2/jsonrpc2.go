@@ -313,6 +313,10 @@ func GetNamedParams(target Method) map[string]interface{} {
 }
 
 func isZero(x interface{}) bool {
+	if x == nil {
+		return true
+	}
+
 	return reflect.DeepEqual(x, reflect.Zero(reflect.TypeOf(x)).Interface())
 }
 
@@ -374,21 +378,16 @@ func innerParseNamed(targetValue reflect.Value, params map[string]interface{}) e
 				continue
 			}
 			fT := tType.Field(i)
-			// check for the json tag match, as well a simple
-			// lower case name match
 			tag, _ := fT.Tag.Lookup("json")
-			name, _ := parseTag(tag)
+
+			name, omit := parseTag(tag)
+
 			if name == key || key == strings.ToLower(fT.Name) {
 				found = true
-				fmt.Printf(
-					"MATCH target=%s key=%q field=%s fieldType=%s valueType=%T value=%#v\n",
-					targetValue.Type().Name(),
-					key,
-					fT.Name,
-					fVal.Type().String(),
-					value,
-					value,
-				)
+				if omit && isZero(value) {
+					break
+				}
+
 				err := innerParse(targetValue, fVal, value)
 				if err != nil {
 					return err
