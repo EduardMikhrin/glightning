@@ -569,28 +569,28 @@ func innerParse(targetValue reflect.Value, fVal reflect.Value, value interface{}
 			return nil
 		}
 
-		if v.Kind() == reflect.String && strings.HasSuffix(fVal.Type().Elem().String(), "Hexed") {
-			strVal := value.(string)
-			rawBytes, err := hex.DecodeString(strVal)
-			if err != nil {
-				return err
-			}
-
-			n := reflect.New(fVal.Type().Elem())
-
-			if strField := n.Elem().FieldByName("Str"); strField.IsValid() {
-				strField.SetString(strVal)
-			} else if stringField := n.Elem().FieldByName("String"); stringField.IsValid() {
-				stringField.SetString(strVal)
-			}
-
-			if rawField := n.Elem().FieldByName("Raw"); rawField.IsValid() {
-				rawField.SetBytes(rawBytes)
-			}
-
-			fVal.Set(n)
-			return nil
-		}
+		//if v.Kind() == reflect.String && strings.HasSuffix(fVal.Type().Elem().String(), "Hexed") {
+		//	strVal := value.(string)
+		//	rawBytes, err := hex.DecodeString(strVal)
+		//	if err != nil {
+		//		return err
+		//	}
+		//
+		//	n := reflect.New(fVal.Type().Elem())
+		//
+		//	if strField := n.Elem().FieldByName("Str"); strField.IsValid() {
+		//		strField.SetString(strVal)
+		//	} else if stringField := n.Elem().FieldByName("String"); stringField.IsValid() {
+		//		stringField.SetString(strVal)
+		//	}
+		//
+		//	if rawField := n.Elem().FieldByName("Raw"); rawField.IsValid() {
+		//		rawField.SetBytes(rawBytes)
+		//	}
+		//
+		//	fVal.Set(n)
+		//	return nil
+		//}
 
 		if v.Kind() != reflect.Map {
 			return NewError(nil, InvalidParams, fmt.Sprintf("Types don't match. Expected a map[string]interface{} from the JSON, instead got %s", v.Kind().String()))
