@@ -1183,6 +1183,7 @@ const (
 	Unusual
 	Debug
 	Io
+	Error
 )
 
 func (l LogLevel) String() string {
@@ -1192,6 +1193,7 @@ func (l LogLevel) String() string {
 		"unusual",
 		"debug",
 		"io",
+		"error",
 	}[l]
 }
 
