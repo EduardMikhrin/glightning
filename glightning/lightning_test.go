@@ -1717,32 +1717,40 @@ func TestGetInfo(t *testing.T) {
 func TestGetLog(t *testing.T) {
 	lightning, requestQ, replyQ := startupServer(t)
 	req := "{\"jsonrpc\":\"2.0\",\"method\":\"getlog\",\"params\":{\"level\":\"info\"},\"id\":1}"
-	resp := wrapResult(1, `{"created_at":"1546200491.277516996", "bytes_used":6445039,"bytes_max":20971520,"log":[{"type": "UNUSUAL","time": "4709.811937439","source": "lightningd(9383):", "log": "bitcoin-cli: finished bitcoin-cli getblockhash 556283 (12250 ms)"},{"type": "SKIPPED","num_skipped": 89},{"type": "INFO","time": "5688.218267611","source": "lightningd(9383):","log": "lightning_openingd-02cca6c5c966fcf61d121e3a70e03a1cd9eeeea024b26ea666ce974d43b242e636 chan #1: Peer connection lost"}]}`)
+	resp := wrapResult(1, `{"created_at":"1546200491.277516996", "bytes_used":6445039,"bytes_max":20971520,"log":[{"type":"UNUSUAL","time":"4709.811937439","source":"lightningd(9383):","log":"bitcoin-cli: finished bitcoin-cli getblockhash 556283 (12250 ms)"},{"type":"SKIPPED","num_skipped":89},{"type":"INFO","time":"5688.218267611","source":"lightningd(9383):","log":"lightning_openingd-02cca6c5c966fcf61d121e3a70e03a1cd9eeeea024b26ea666ce974d43b242e636 chan #1: Peer connection lost"},{"type":"ERROR","time":"5689.000000000","source":"lightningd(9383):","log":"failed to connect to bitcoind"}]}`)
 	go runServerSide(t, req, resp, replyQ, requestQ)
+
 	logresp, err := lightning.GetLog(glightning.Info)
 	if err != nil {
 		t.Fatal(err)
 	}
+
 	assert.Equal(t, &glightning.LogResponse{
 		CreatedAt: "1546200491.277516996",
 		BytesUsed: uint64(6445039),
 		BytesMax:  uint64(20971520),
 		Logs: []glightning.Log{
-			glightning.Log{
+			{
 				Type:    "UNUSUAL",
 				Time:    "4709.811937439",
 				Source:  "lightningd(9383):",
 				Message: "bitcoin-cli: finished bitcoin-cli getblockhash 556283 (12250 ms)",
 			},
-			glightning.Log{
+			{
 				Type:       "SKIPPED",
 				NumSkipped: uint(89),
 			},
-			glightning.Log{
+			{
 				Type:    "INFO",
 				Time:    "5688.218267611",
 				Source:  "lightningd(9383):",
 				Message: "lightning_openingd-02cca6c5c966fcf61d121e3a70e03a1cd9eeeea024b26ea666ce974d43b242e636 chan #1: Peer connection lost",
+			},
+			{
+				Type:    "ERROR",
+				Time:    "5689.000000000",
+				Source:  "lightningd(9383):",
+				Message: "failed to connect to bitcoind",
 			},
 		},
 	}, logresp)
