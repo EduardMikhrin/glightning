@@ -1185,6 +1185,7 @@ const (
 	Io
 	Error
 	Warn
+	Test
 )
 
 func (l LogLevel) String() string {
@@ -1196,6 +1197,7 @@ func (l LogLevel) String() string {
 		"io",
 		"error",
 		"warn",
+		"test",
 	}[l]
 }
 
