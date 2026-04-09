@@ -1181,9 +1181,9 @@ const (
 	None LogLevel = iota
 	Info
 	Unusual
-	Error
 	Debug
 	Io
+	Broken
 )
 
 func (l LogLevel) String() string {
